@@ -35,19 +35,19 @@
 //
 // Limit Switches
 //
-#define X_STOP_PIN                            34
-#define Y_STOP_PIN                            35
-#define Z_STOP_PIN                            15
+#define X_STOP_PIN                            15
+#define Y_STOP_PIN                            0
+#define Z_STOP_PIN                            X_STOP_PIN
 
 //
 // Steppers
 //
-#define X_STEP_PIN                            27
-#define X_DIR_PIN                             26
-#define X_ENABLE_PIN                          25
+#define X_STEP_PIN                            13
+#define X_DIR_PIN                             12
+#define X_ENABLE_PIN                          14
 
-#define Y_STEP_PIN                            33
-#define Y_DIR_PIN                             32
+#define Y_STEP_PIN                            27
+#define Y_DIR_PIN                             26
 #define Y_ENABLE_PIN                X_ENABLE_PIN
 
 #define Z_STEP_PIN                            14
@@ -77,5 +77,5 @@
 #define SD_MOSI_PIN                           23
 #define SD_MISO_PIN                           19
 #define SD_SCK_PIN                            18
-#define SD_SS_PIN                              5
+#define SDSS                                   5
 #define USES_SHARED_SPI                           // SPI is shared by SD card with TMC SPI drivers

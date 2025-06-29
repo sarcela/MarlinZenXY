@@ -21,13 +21,7 @@
  */
 #pragma once
 
-// The Octopus Pro V1 has shipped with both STM32F4 and STM32H7 MCUs.
-// Ensure the correct env_validate.h file is included based on the build environment used.
-#if NOT_TARGET(STM32H7)
-  #include "env_validate.h"
-#else
-  #include "../stm32h7/env_validate.h"
-#endif
+#include "env_validate.h"
 
 #define HAS_OTG_USB_HOST_SUPPORT                  // USB Flash Drive support
 #define USES_DIAG_JUMPERS
@@ -36,7 +30,7 @@
 #if ANY(NO_EEPROM_SELECTED, I2C_EEPROM)
   #undef NO_EEPROM_SELECTED
   #define I2C_EEPROM
-  #define MARLIN_EEPROM_SIZE             0x1000U  // 4K (AT24C32)
+  #define MARLIN_EEPROM_SIZE              0x1000  // 4K (AT24C32)
   #define SOFT_I2C_EEPROM                         // Force the use of Software I2C
   #define I2C_SCL_PIN                       PB8
   #define I2C_SDA_PIN                       PB9
@@ -51,6 +45,11 @@
 #define SERVO0_PIN                          PB6
 
 //
+// Misc. Functions
+//
+#define LED_PIN                             PA13
+
+//
 // Trinamic Stallguard pins
 //
 #define X_DIAG_PIN                          PG6   // X-STOP
@@ -63,27 +62,84 @@
 #define E3_DIAG_PIN                         PG15  // E3DET
 
 //
+// Check for additional used endstop pins
+//
+#if HAS_EXTRA_ENDSTOPS
+  #define _ENDSTOP_IS_ANY(ES) X2_USE_ENDSTOP == ES || Y2_USE_ENDSTOP == ES || Z2_USE_ENDSTOP == ES || Z3_USE_ENDSTOP == ES || Z4_USE_ENDSTOP == ES
+  #if _ENDSTOP_IS_ANY(_XMIN_) || _ENDSTOP_IS_ANY(_XMAX_)
+    #define NEEDS_X_MINMAX
+  #endif
+  #if _ENDSTOP_IS_ANY(_YMIN_) || _ENDSTOP_IS_ANY(_YMAX_)
+    #define NEEDS_Y_MINMAX
+  #endif
+  #if _ENDSTOP_IS_ANY(_ZMIN_) || _ENDSTOP_IS_ANY(_ZMAX_)
+    #define NEEDS_Z_MINMAX
+  #endif
+  #undef _ENDSTOP_IS_ANY
+#endif
+
+//
 // Limit Switches
 //
-#define X_STOP_PIN                    X_DIAG_PIN  // X-STOP
-#define Y_STOP_PIN                    Y_DIAG_PIN  // Y-STOP
-#define Z_STOP_PIN                    Z_DIAG_PIN  // Z-STOP
-#define X_OTHR_PIN                   E0_DIAG_PIN  // E0DET
-#define Y_OTHR_PIN                   E1_DIAG_PIN  // E1DET
-#define Z_OTHR_PIN                   E2_DIAG_PIN  // E2DET
+#ifdef X_STALL_SENSITIVITY
+  #define X_STOP_PIN                  X_DIAG_PIN
+  #if X_HOME_TO_MIN
+    #define X_MAX_PIN                E0_DIAG_PIN  // E0DET
+  #else
+    #define X_MIN_PIN                E0_DIAG_PIN  // E0DET
+  #endif
+#elif ANY(DUAL_X_CARRIAGE, NEEDS_X_MINMAX)
+  #ifndef X_MIN_PIN
+    #define X_MIN_PIN                 X_DIAG_PIN  // X-STOP
+  #endif
+  #ifndef X_MAX_PIN
+    #define X_MAX_PIN                E0_DIAG_PIN  // E0DET
+  #endif
+#else
+  #define X_STOP_PIN                  X_DIAG_PIN  // X-STOP
+#endif
+
+#ifdef Y_STALL_SENSITIVITY
+  #define Y_STOP_PIN                  Y_DIAG_PIN
+  #if Y_HOME_TO_MIN
+    #define Y_MAX_PIN                E1_DIAG_PIN  // E1DET
+  #else
+    #define Y_MIN_PIN                E1_DIAG_PIN  // E1DET
+  #endif
+#elif ENABLED(NEEDS_Y_MINMAX)
+  #ifndef Y_MIN_PIN
+    #define Y_MIN_PIN                 Y_DIAG_PIN  // Y-STOP
+  #endif
+  #ifndef Y_MAX_PIN
+    #define Y_MAX_PIN                E1_DIAG_PIN  // E1DET
+  #endif
+#else
+  #define Y_STOP_PIN                  Y_DIAG_PIN  // Y-STOP
+#endif
+
+#ifdef Z_STALL_SENSITIVITY
+  #define Z_STOP_PIN                  Z_DIAG_PIN
+  #if Z_HOME_TO_MIN
+    #define Z_MAX_PIN                E2_DIAG_PIN  // PWRDET
+  #else
+    #define Z_MIN_PIN                E2_DIAG_PIN  // PWRDET
+  #endif
+#elif ENABLED(NEEDS_Z_MINMAX)
+  #ifndef Z_MIN_PIN
+    #define Z_MIN_PIN                 Z_DIAG_PIN  // Z-STOP
+  #endif
+  #ifndef Z_MAX_PIN
+    #define Z_MAX_PIN                E2_DIAG_PIN  // PWRDET
+  #endif
+#else
+  #define Z_STOP_PIN                  Z_DIAG_PIN  // Z-STOP
+#endif
 
 //
 // Z Probe (when not Z_MIN_PIN)
 //
 #ifndef Z_MIN_PROBE_PIN
   #define Z_MIN_PROBE_PIN                   PB7
-#endif
-
-//
-// Probe enable
-//
-#if ENABLED(PROBE_ENABLE_DISABLE) && !defined(PROBE_ENABLE_PIN)
-  #define PROBE_ENABLE_PIN            SERVO0_PIN
 #endif
 
 //
@@ -201,7 +257,7 @@
 // SD Support
 //
 #ifndef SDCARD_CONNECTION
-  #if HAS_WIRED_LCD && DISABLED(NO_LCD_SDCARD)
+  #if HAS_WIRED_LCD
     #define SDCARD_CONNECTION                LCD
   #else
     #define SDCARD_CONNECTION            ONBOARD
@@ -241,13 +297,28 @@
   //#define E4_HARDWARE_SERIAL Serial1
 
   #define X_SERIAL_TX_PIN                   PC4
+  #define X_SERIAL_RX_PIN        X_SERIAL_TX_PIN
+
   #define Y_SERIAL_TX_PIN                   PD11
+  #define Y_SERIAL_RX_PIN        Y_SERIAL_TX_PIN
+
   #define Z_SERIAL_TX_PIN                   PC6
+  #define Z_SERIAL_RX_PIN        Z_SERIAL_TX_PIN
+
   #define Z2_SERIAL_TX_PIN                  PC7
+  #define Z2_SERIAL_RX_PIN      Z2_SERIAL_TX_PIN
+
   #define E0_SERIAL_TX_PIN                  PF2
+  #define E0_SERIAL_RX_PIN      E0_SERIAL_TX_PIN
+
   #define E1_SERIAL_TX_PIN                  PE4
+  #define E1_SERIAL_RX_PIN      E1_SERIAL_TX_PIN
+
   #define E2_SERIAL_TX_PIN                  PE1
+  #define E2_SERIAL_RX_PIN      E2_SERIAL_TX_PIN
+
   #define E3_SERIAL_TX_PIN                  PD3
+  #define E3_SERIAL_RX_PIN      E3_SERIAL_TX_PIN
 
   // Reduce baud rate to improve software serial reliability
   #ifndef TMC_BAUD_RATE
@@ -297,7 +368,8 @@
   #define SD_DETECT_PIN                     PC14
 #elif SD_CONNECTION_IS(LCD)
 
-  #define SD_SS_PIN                         PA4
+  #define SDSS                              PA4
+  #define SD_SS_PIN                         SDSS
   #define SD_SCK_PIN                        PA5
   #define SD_MISO_PIN                       PA6
   #define SD_MOSI_PIN                       PA7
@@ -327,6 +399,7 @@
   #define E4_CS_PIN                  EXP1_06_PIN
   #if HAS_TMC_UART
     #define E4_SERIAL_TX_PIN         EXP1_06_PIN
+    #define E4_SERIAL_RX_PIN    E4_SERIAL_TX_PIN
   #endif
 
   // M2 on Driver Expansion Module
@@ -337,6 +410,7 @@
   #define E5_CS_PIN                  EXP1_04_PIN
   #if HAS_TMC_UART
     #define E5_SERIAL_TX_PIN         EXP1_04_PIN
+    #define E5_SERIAL_RX_PIN    E5_SERIAL_TX_PIN
   #endif
 
   // M3 on Driver Expansion Module
@@ -347,6 +421,7 @@
   #define E6_CS_PIN                  EXP1_02_PIN
   #if HAS_TMC_UART
     #define E6_SERIAL_TX_PIN         EXP1_02_PIN
+    #define E6_SERIAL_RX_PIN    E6_SERIAL_TX_PIN
   #endif
 
 #endif // BTT_MOTOR_EXPANSION
@@ -376,7 +451,9 @@
    * orientation as the existing plug/DWIN to EXP1. TX/RX need to be connected to the TFT port, with TX->RX, RX->TX.
    */
 
-  CONTROLLER_WARNING("BTT_OCTOPUS_V1_common", "Ender-3 V2 display")
+  #ifndef NO_CONTROLLER_CUSTOM_WIRING_WARNING
+    #error "CAUTION! Ender-3 V2 display requires a custom cable. See 'pins_BTT_OCTOPUS_V1_common.h' for details. (Define NO_CONTROLLER_CUSTOM_WIRING_WARNING to suppress this warning.)"
+  #endif
 
   #define BEEPER_PIN                 EXP1_06_PIN
   #define BTN_EN1                    EXP1_08_PIN
@@ -471,8 +548,8 @@
 //
 // NeoPixel LED
 //
-#ifndef BOARD_NEOPIXEL_PIN
-  #define BOARD_NEOPIXEL_PIN                PB0
+#ifndef NEOPIXEL_PIN
+  #define NEOPIXEL_PIN                      PB0
 #endif
 
 #if ENABLED(WIFISUPPORT)
@@ -483,13 +560,13 @@
   /**
    *                      -------
    *            GND | 9  |       | 8 | 3.3V
-   *  (ESP-CS) PB12 | 10 |       | 7 | PC3  (ESP-MOSI)
-   *             -- | 11 |       | 6 | PC2  (ESP-MISO)
+   *  (ESP-CS) PB12 | 10 |       | 7 | PB15 (ESP-MOSI)
+   *           3.3V | 11 |       | 6 | PB14 (ESP-MISO)
    * (ESP-IO0)  PD7 | 12 |       | 5 | PB13 (ESP-CLK)
    * (ESP-IO4) PD10 | 13 |       | 4 | --
-   *             -- | 14 |       | 3 | PG8  (ESP-EN)
+   *             -- | 14 |       | 3 | PE15 (ESP-EN)
    *  (ESP-RX)  PD8 | 15 |       | 2 | --
-   *  (ESP-TX)  PD9 | 16 |       | 1 | PG7  (ESP-RST)
+   *  (ESP-TX)  PD9 | 16 |       | 1 | PE14 (ESP-RST)
    *                      -------
    *                       WIFI
    */

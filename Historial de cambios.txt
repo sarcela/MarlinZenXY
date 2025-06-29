@@ -1,0 +1,163 @@
+En esta version de Marlin se hicieron los siguientes cambios para satisfacer las necesidades de una mesa ZEN.
+
+17/09/24
+
+En el portal de RepRap se encontraron modificaciones a los archivos:
+*Configuration.h
+*Configuration_adv.h
+*MarlinCore.cpp
+*Random_auto_g_file_loader.cpp
+
+Se agrega Random_auto_g_file_loader.cpp a la carpetavsrc/sd
+
+Se copia:
+-----------------------
+ if (millis() - millis_auto_g > 5000) {   // random g loader
+       random_auto_g_file_loader();             // random g loader
+       millis_auto_g = millis();                // random g loader
+    }                                        // random g loader
+
+---------------------
+segun el archivo Random_auto
+
+//   bool random_auto_g_file_loader();              // add anywhere before the loop()
+//   millis_t millis_auto_g;                        // add anywhere before the loop()
+//   int lastrandomNumber;                          // last randon number used 
+//   void loop() {                                  // existing code
+//       do {                                       // existing code
+//         if (millis() - millis_auto_g > 5000) {   // put this inside the do loop
+//           random_auto_g_file_loader();           // put this inside the do loop
+//           millis_auto_g = millis();              // put this inside the do loop
+//         }
+
+SE MODIFICO DE LA SIGUIENTE MANERA, PARA PODER UTILIZAR LA PAUSA
+
+     if (millis() - millis_auto_g > 5000) {
+      if (IS_SD_PAUSED()) 
+        SERIAL_ECHOLNPGM("SandTable is Paused");
+      else  
+       random_auto_g_file_loader();             // random g loader
+      millis_auto_g = millis();                // random g loader
+    }    
+
+de MarlinCore.cpp descargado a el archivo de Marlin nuevo.
+
+Se define SDSupport
+
+
+Cambios en Configuration.h:
+176 //#define E0_DRIVER_TYPE A4988
+231 #define EXTRUDERS 0
+552 #define TEMP_SENSOR_0 0
+560 #define TEMP_SENSOR_BED 0
+889 #define COREXY
+1199 #define DEFAULT_AXIS_STEPS_PER_UNIT   { 640, 640, 80 }
+1206 #define DEFAULT_MAX_FEEDRATE          { 55, 55, 5 }
+1219 #define DEFAULT_MAX_ACCELERATION      { 30, 30, 50 }
+1234 #define DEFAULT_ACCELERATION          500    // X, Y, Z and E acceleration for printing moves
+1235 #define DEFAULT_RETRACT_ACCELERATION  500    // E acceleration for retracts
+1236 #define DEFAULT_TRAVEL_ACCELERATION   500    // X, Y, Z acceleration for travel (non printing) moves
+1640 //#define E_ENABLE_ON 0 // For all extruders
+1725 #define X_BED_SIZE 500
+1726 #define Y_BED_SIZE 300
+1734 #define Z_MAX_POS 0
+2129 #define HOMING_FEEDRATE_MM_M { (50*16), (50*16), (4*60) }
+2207 #define EEPROM_SETTINGS     // Persistent storage with M500 and M501
+2208 #define DISABLE_M503        // Saves ~2700 bytes of flash. Disable for release!
+2491 #define SDSUPPORT
+2762 #define REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
+
+
+
+Cambios en Configuration_adv.h
+446 //#define AUTOTEMP
+882 #define HOMING_BUMP_MM      { 0, 0, 0 } 
+1103 #define AXIS_RELATIVE_MODES { false, false, false }
+1278 #define ADAPTIVE_STEP_SMOOTHING
+1353 #define MANUAL_FEEDRATE { 50*60, 50*60, 4*60}
+1552 #define NO_SD_AUTOSTART                 // Remove auto#.g file support completely to save some Flash, SRAM
+1743   #define SDCARD_CONNECTION CUSTOM_CABLE  No se cambio pero deberia, checar RAMPSPINS
+2734 #define X_CURRENT       450
+2736 #define X_MICROSTEPS     128
+2740 #define X_HOLD_MULTIPLIER 0.5 
+2754 #define Y_CURRENT       450
+2756 #define Y_MICROSTEPS     128
+2760 #define Y_HOLD_MULTIPLIER 0.5
+3718 #define G0_FEEDRATE 1000 // (mm/min) ------------------------------------------------------------------------------Hacer pruebas
+3968 #define JOYSTICK
+
+SE AGREGA EN MarlinCore.cpp
+145 if (IS_SD_PAUSED()) break;
+
+18 09 24
+Configuration_adv.h
+4011 #define FREEZE_FEATURE
+#if ENABLED(FREEZE_FEATURE)
+  #define FREEZE_PIN 41   // Override the default (KILL) pin here
+  #define FREEZE_STATE LOW  // State of pin indicating freeze
+#endif
+
+27/09/24 Agregando Pot Dwell, ya se agrego el Pot Feedrate, pero no se documento debido a la ardua
+complejidad, se seguiran los mismos pasos:
+
+Cpnfiguration_adv.h
+
+3557 #if ENABLED(FEEDRATE_POT_SENSOR)
+  #define FEEDPOT_PIN 5
+  #define MAXFEEDRATE 200                   
+#endif
+
+3562 #define DWEL_POT_SENSOR
+#if ENABLED(DWEL_POT_SENSOR)
+  #define DWPOT_PIN 6                   
+#endif
+
+temperature.cpp
+173 #if ENABLED(FEEDRATE_POT_SENSOR)
+  #include "../feature/feedpot.h"
+#endif
+
+177 #if ENABLED(DWEL_POT_SENSOR)
+  #include "../feature/dwpot.h"
+#endif
+
+2717   TERN_(FEEDRATE_POT_SENSOR,    hal.adc_enable(FEEDPOT_PIN));
+  TERN_(DWEL_POT_SENSOR,        hal.adc_enable(DWPOT_PIN));
+
+3979     #if ENABLED(FEEDRATE_POT_SENSOR)
+      case Prepare_FEEDPOT: hal.adc_start(FEEDPOT_PIN); break;
+      case Measure_FEEDPOT:
+        if (!hal.adc_ready()) next_sensor_state = adc_sensor_state; // Redo this state
+        else feedpot.fpaccumulate(hal.adc_value());
+      break;
+    #endif
+
+3987    #if ENABLED(DWEL_POT_SENSOR)
+      case Prepare_DWPOT: hal.adc_start(DWPOT_PIN); break;
+      case Measure_DWPOT:
+        if (!hal.adc_ready()) next_sensor_state = adc_sensor_state; // Redo this state
+        else dwpot.fpaccumulate(hal.adc_value());
+      break;
+    #endif
+
+temperature.h
+
+118   #if ENABLED(FEEDRATE_POT_SENSOR)
+    Prepare_FEEDPOT, Measure_FEEDPOT,
+  #endif
+121  #if ENABLED(DWEL_POT_SENSOR)
+    Prepare_DWPOT, Measure_DWPOT,
+  #endif
+
+crear archivo en la carpeta feature
+dwpot.h
+
+
+
+
+
+
+
+
+
+

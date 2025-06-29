@@ -28,6 +28,9 @@
 
 #include <pinmapping.h>
 
+#define strlcpy(A, B, C)   strncpy(A, B, (C) - 1)
+#define strlcpy_P(A, B, C) strncpy_P(A, B, (C) - 1)
+
 #define HIGH         0x01
 #define LOW          0x00
 
@@ -74,10 +77,11 @@ extern "C" {
 
 // Time functions
 extern "C" void delay(const int ms);
+void _delay_ms(const int ms);
 void delayMicroseconds(unsigned long);
-unsigned long millis();
+uint32_t millis();
 
-// IO functions
+//IO functions
 void pinMode(const pin_t, const uint8_t);
 void digitalWrite(pin_t, uint8_t);
 bool digitalRead(pin_t);

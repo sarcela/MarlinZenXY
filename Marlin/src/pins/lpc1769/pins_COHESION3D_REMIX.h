@@ -23,7 +23,8 @@
 
 /**
  * Cohesion3D ReMix pin assignments
- * Schematic: https://github.com/Cohesion3D/Cohesion3D-ReMix/blob/master/C3D%20ReMix%20rev2.sch
+ * Schematic: https://green-candy.osdn.jp/external/MarlinFW/board_schematics/Cohesion3D%20ReMix/C3D%20ReMix%20rev2.svg
+ * Origin: https://github.com/Cohesion3D/Cohesion3D-ReMix/blob/master/C3D%20ReMix%20rev2.sch
  */
 
 #include "env_validate.h"
@@ -244,7 +245,7 @@
   #define BTN_ENC                    EXP1_02_PIN
 
   #define LCD_PINS_RS                EXP1_04_PIN
-  #define LCD_SDSS_PIN               EXP2_04_PIN
+  #define LCD_SDSS                   EXP2_04_PIN
   #define LCD_PINS_EN                EXP1_03_PIN
   #define LCD_PINS_D4                EXP1_05_PIN
 

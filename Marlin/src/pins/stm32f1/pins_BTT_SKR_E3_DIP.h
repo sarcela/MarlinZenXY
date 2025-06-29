@@ -33,7 +33,7 @@
 
 #if ANY(NO_EEPROM_SELECTED, FLASH_EEPROM_EMULATION)
   #define FLASH_EEPROM_EMULATION
-  #define EEPROM_PAGE_SIZE                0x800U  // 2K
+  #define EEPROM_PAGE_SIZE     (0x800U)           // 2K
   #define EEPROM_START_ADDRESS (0x8000000UL + (STM32_FLASH_SIZE) * 1024UL - (EEPROM_PAGE_SIZE) * 2UL)
   #define MARLIN_EEPROM_SIZE    EEPROM_PAGE_SIZE  // 2K
 #endif
@@ -54,13 +54,6 @@
 // Z Probe must be this pin
 //
 #define Z_MIN_PROBE_PIN                     PC14  // PROBE
-
-//
-// Probe enable
-//
-#if ENABLED(PROBE_ENABLE_DISABLE) && !defined(PROBE_ENABLE_PIN)
-  #define PROBE_ENABLE_PIN            SERVO0_PIN
-#endif
 
 //
 // Filament Runout Sensor
@@ -126,9 +119,16 @@
   //#define E0_HARDWARE_SERIAL MSerial1
 
   #define X_SERIAL_TX_PIN                   PC10
+  #define X_SERIAL_RX_PIN        X_SERIAL_TX_PIN
+
   #define Y_SERIAL_TX_PIN                   PC11
+  #define Y_SERIAL_RX_PIN        Y_SERIAL_TX_PIN
+
   #define Z_SERIAL_TX_PIN                   PC12
+  #define Z_SERIAL_RX_PIN        Z_SERIAL_TX_PIN
+
   #define E0_SERIAL_TX_PIN                  PD2
+  #define E0_SERIAL_RX_PIN      E0_SERIAL_TX_PIN
 
   // Reduce baud rate to improve software serial reliability
   #ifndef TMC_BAUD_RATE
@@ -205,7 +205,9 @@
 
   #elif ENABLED(ZONESTAR_LCD)                     // ANET A8 LCD Controller - Must convert to 3.3V - CONNECTING TO 5V WILL DAMAGE THE BOARD!
 
-    CONTROLLER_WARNING("BTT_SKR_E3_DIP", "ZONESTAR_LCD")
+    #ifndef NO_CONTROLLER_CUSTOM_WIRING_WARNING
+      #error "CAUTION! ZONESTAR_LCD requires wiring modifications. See 'pins_BTT_SKR_MINI_E3_DIP.h' for details. (Define NO_CONTROLLER_CUSTOM_WIRING_WARNING to suppress this warning.)"
+    #endif
 
     #define LCD_PINS_RS              EXP1_06_PIN
     #define LCD_PINS_EN              EXP1_02_PIN
@@ -241,14 +243,15 @@
 
   #elif ENABLED(FYSETC_MINI_12864_2_1)
 
-    CONTROLLER_WARNING("BTT_SKR_E3_DIP", "FYSETC_MINI_12864_2_1 and clones")
-
+    #ifndef NO_CONTROLLER_CUSTOM_WIRING_WARNING
+      #error "CAUTION! FYSETC_MINI_12864_2_1 and it's clones require wiring modifications. See 'pins_BTT_SKR_MINI_E3_DIP.h' for details. (Define NO_CONTROLLER_CUSTOM_WIRING_WARNING to suppress this warning.)"
+    #endif
     #if SD_CONNECTION_IS(LCD)
       #error "The LCD SD Card is not supported with this configuration."
     #endif
 
     /**
-     * FYSETC_MINI_12864_2_1 / MKS_MINI_12864_V3 / BTT_MINI_12864 / BEEZ_MINI_12864 display pinout
+     * FYSETC_MINI_12864_2_1 / MKS_MINI_12864_V3 / BTT_MINI_12864 display pinout
      *
      *                   Board                               Display
      *                   ------                               ------
@@ -300,21 +303,17 @@
     #define LCD_BACKLIGHT_PIN               -1
     #define FORCE_SOFT_SPI
 
-  #elif ENABLED(ULTI_CONTROLLER)
-
-    #define LCD_PINS_D6              EXP1_03_PIN
-    #define DOGLCD_SCL_PIN           EXP1_07_PIN  // I2C1
-    #define DOGLCD_SDA_PIN           EXP1_08_PIN  // I2C1
-
   #else
-    #error "Only CR10_STOCKDISPLAY, ZONESTAR_LCD, ENDER2_STOCKDISPLAY, ULTI_CONTROLLER, MKS_MINI_12864, FYSETC_MINI_12864_2_1 and MKS_LCD12864A/B are currently supported on the SKR E3 DIP."
+    #error "Only CR10_STOCKDISPLAY, ZONESTAR_LCD, ENDER2_STOCKDISPLAY, MKS_MINI_12864, FYSETC_MINI_12864_2_1 and MKS_LCD12864A/B are currently supported on the BIGTREE_SKR_E3_DIP."
   #endif
 
 #endif // HAS_WIRED_LCD
 
 #if ALL(TOUCH_UI_FTDI_EVE, LCD_FYSETC_TFT81050)
 
-  CONTROLLER_WARNING("BTT_SKR_E3_DIP", "LCD_FYSETC_TFT81050")
+  #ifndef NO_CONTROLLER_CUSTOM_WIRING_WARNING
+    #error "CAUTION! LCD_FYSETC_TFT81050 requires wiring modifications. See 'pins_BTT_SKR_E3_DIP.h' for details. (Define NO_CONTROLLER_CUSTOM_WIRING_WARNING to suppress this warning.)"
+  #endif
 
   /** FYSETC TFT TFT81050 display pinout
    *
@@ -374,4 +373,4 @@
 
 #define ONBOARD_SPI_DEVICE                     1  // SPI1
 #define ONBOARD_SD_CS_PIN                   PA4   // Chip select for "System" SD card
-#define SD_SS_PIN              ONBOARD_SD_CS_PIN
+#define SDSS                   ONBOARD_SD_CS_PIN

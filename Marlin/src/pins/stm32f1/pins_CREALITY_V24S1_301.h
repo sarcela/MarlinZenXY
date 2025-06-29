@@ -44,8 +44,6 @@
   #define DEFAULT_MACHINE_NAME "Ender-3 S1"
 #endif
 
-#define BOARD_LCD_SERIAL_PORT 2
-
 //
 // Servos
 //
@@ -60,13 +58,6 @@
 
 #ifndef Z_MIN_PROBE_PIN
   #define Z_MIN_PROBE_PIN                   PC14  // BLTouch IN
-#endif
-
-//
-// Probe enable
-//
-#if ENABLED(PROBE_ENABLE_DISABLE) && !defined(PROBE_ENABLE_PIN)
-  #define PROBE_ENABLE_PIN            SERVO0_PIN
 #endif
 
 //

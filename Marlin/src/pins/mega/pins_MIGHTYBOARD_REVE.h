@@ -23,7 +23,8 @@
 
 /**
  * Mightyboard Rev.E pin assignments
- * Schematic: https://github.com/sciguy14/HelioWatcher/blob/master/HelioWatcher%20Circuit/MakerBot%20MightyBoard%20REVE%20Schematic.pdf
+ * Schematic: https://green-candy.osdn.jp/external/MarlinFW/board_schematics/Mightyboard%20Rev.E/MakerBot%20MightyBoard%20REVE%20Schematic.pdf
+ * Origin: https://github.com/sciguy14/HelioWatcher/blob/master/HelioWatcher%20Circuit/MakerBot%20MightyBoard%20REVE%20Schematic.pdf
  * also works for Rev D boards. It's all rev E despite what the silk screen says
  */
 
@@ -239,7 +240,7 @@
 //
 // SD Card
 //
-#define SD_SS_PIN                             53  // B0
+#define SDSS                                  53  // B0
 #define SD_DETECT_PIN                          9  // H6
 
 #if HAS_TMC_UART

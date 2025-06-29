@@ -38,9 +38,9 @@
   #ifndef FLASH_EEPROM_EMULATION
     #define FLASH_EEPROM_EMULATION
   #endif
-  #define EEPROM_PAGE_SIZE                0x800U  // 2K
-  #define EEPROM_START_ADDRESS (0x8000000UL + (STM32_FLASH_SIZE) * 1024UL - (EEPROM_PAGE_SIZE) * 2UL)
-  #define MARLIN_EEPROM_SIZE     EEPROM_PAGE_SIZE
+  #define EEPROM_PAGE_SIZE      (0x800UL) // 2K
+  #define EEPROM_START_ADDRESS  (0x8000000UL + (STM32_FLASH_SIZE) * 1024UL - (EEPROM_PAGE_SIZE) * 2UL)
+  #define MARLIN_EEPROM_SIZE    EEPROM_PAGE_SIZE
 #endif
 
 //
@@ -74,13 +74,59 @@
 #endif
 
 //
+// Check for additional used endstop pins
+//
+#if HAS_EXTRA_ENDSTOPS
+  #define _ENDSTOP_IS_ANY(ES) X2_USE_ENDSTOP == ES || Y2_USE_ENDSTOP == ES || Z2_USE_ENDSTOP == ES || Z3_USE_ENDSTOP == ES || Z4_USE_ENDSTOP == ES
+  #if _ENDSTOP_IS_ANY(_XMIN_) || _ENDSTOP_IS_ANY(_XMAX_)
+    #define NEEDS_X_MINMAX
+  #endif
+  #if _ENDSTOP_IS_ANY(_YMIN_) || _ENDSTOP_IS_ANY(_YMAX_)
+    #define NEEDS_Y_MINMAX
+  #endif
+  #undef _ENDSTOP_IS_ANY
+#endif
+
+//
 // Limit Switches
 //
-#define X_STOP_PIN                    X_DIAG_PIN  // MIN1
-#define Y_STOP_PIN                    Y_DIAG_PIN  // MIN2
+#ifdef X_STALL_SENSITIVITY
+  #define X_STOP_PIN                  X_DIAG_PIN
+  #if X_HOME_TO_MIN
+    #define X_MAX_PIN                E0_DIAG_PIN  // MIN5
+  #else
+    #define X_MIN_PIN                E0_DIAG_PIN  // MIN5
+  #endif
+#elif ANY(DUAL_X_CARRIAGE, NEEDS_X_MINMAX)
+  #ifndef X_MIN_PIN
+    #define X_MIN_PIN                 X_DIAG_PIN  // MIN1
+  #endif
+  #ifndef X_MAX_PIN
+    #define X_MAX_PIN                E0_DIAG_PIN  // MIN5
+  #endif
+#else
+  #define X_STOP_PIN                  X_DIAG_PIN  // MIN1
+#endif
+
+#ifdef Y_STALL_SENSITIVITY
+  #define Y_STOP_PIN                  Y_DIAG_PIN
+  #if Y_HOME_TO_MIN
+    #define Y_MAX_PIN                E1_DIAG_PIN  // MIN6
+  #else
+    #define Y_MIN_PIN                E1_DIAG_PIN  // MIN6
+  #endif
+#elif ENABLED(NEEDS_Y_MINMAX)
+  #ifndef Y_MIN_PIN
+    #define Y_MIN_PIN                 Y_DIAG_PIN  // MIN2
+  #endif
+  #ifndef Y_MAX_PIN
+    #define Y_MAX_PIN                E1_DIAG_PIN  // MIN6
+  #endif
+#else
+  #define Y_STOP_PIN                  Y_DIAG_PIN  // MIN2
+#endif
+
 #define Z_STOP_PIN                    Z_DIAG_PIN  // MIN3
-#define X_OTHR_PIN                   E0_DIAG_PIN  // MIN5
-#define Y_OTHR_PIN                   E1_DIAG_PIN  // MIN6
 
 //
 // Filament Runout Sensors
@@ -145,10 +191,19 @@
 
 #if HAS_TMC_UART
   #define X_SERIAL_TX_PIN                   PC10
+  #define X_SERIAL_RX_PIN        X_SERIAL_TX_PIN
+
   #define Y_SERIAL_TX_PIN                   PF13
+  #define Y_SERIAL_RX_PIN        Y_SERIAL_TX_PIN
+
   #define Z_SERIAL_TX_PIN                   PF9
+  #define Z_SERIAL_RX_PIN        Z_SERIAL_TX_PIN
+
   #define Z2_SERIAL_TX_PIN                  PD4
+  #define Z2_SERIAL_RX_PIN      Z2_SERIAL_TX_PIN
+
   #define E0_SERIAL_TX_PIN                  PD0
+  #define E0_SERIAL_RX_PIN      E0_SERIAL_TX_PIN
 
   // Reduce baud rate to improve software serial reliability
   #ifndef TMC_BAUD_RATE
@@ -187,7 +242,7 @@
 // SD Support
 //
 #ifndef SDCARD_CONNECTION
-  #if HAS_WIRED_LCD && DISABLED(NO_LCD_SDCARD)
+  #if HAS_WIRED_LCD
     #define SDCARD_CONNECTION                LCD
   #else
     #define SDCARD_CONNECTION            ONBOARD
@@ -227,7 +282,8 @@
 // Must use soft SPI because Marlin's default hardware SPI is tied to LCD's EXP2
 //
 #if SD_CONNECTION_IS(LCD)
-  #define SD_SS_PIN                  EXP2_04_PIN
+  #define SDSS                       EXP2_04_PIN
+  #define SD_SS_PIN                         SDSS
   #define SD_SCK_PIN                 EXP2_02_PIN
   #define SD_MISO_PIN                EXP2_01_PIN
   #define SD_MOSI_PIN                EXP2_06_PIN

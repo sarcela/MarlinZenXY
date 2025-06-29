@@ -23,7 +23,8 @@
 
 /**
  * Mega controller pin assignments
- * Schematic: https://reprap.org/mediawiki/images/b/ba/Mega_controller.pdf
+ * Schematic: https://green-candy.osdn.jp/external/MarlinFW/board_schematics/Mega%20Controller/Mega_controller.pdf
+ * Origin: https://reprap.org/mediawiki/images/b/ba/Mega_controller.pdf
  * ATmega2560
  */
 
@@ -128,7 +129,7 @@
 //
 // Misc. Functions
 //
-#define SD_SS_PIN                        MINI_06
+#define SDSS                             MINI_06
 #define LED_PIN                               13
 
 #ifndef CASE_LIGHT_PIN

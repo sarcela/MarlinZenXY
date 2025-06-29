@@ -17,7 +17,11 @@
 
 from __future__ import print_function
 from PIL import Image
-import argparse, textwrap, os, sys, zlib
+import argparse
+import textwrap
+import os
+import sys
+import zlib
 
 class WriteSource:
   def __init__(self, mode):

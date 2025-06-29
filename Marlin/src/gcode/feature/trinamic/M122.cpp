@@ -36,9 +36,8 @@
  *
  * With TMC_DEBUG:
  *   V     - Report raw register data. Refer to the datasheet to decipher the report.
- *   S0    - Disable continuous debug reporting.
- *   S1    - Enable continuous debug reporting with the default interval.
- *   P<ms> - Enable continuous debug reporting with the given interval in ms.
+ *   S     - Flag to enable/disable continuous debug reporting.
+ *   P<ms> - Interval between continuous debug reports, in milliseconds.
  */
 void GcodeSuite::M122() {
   xyze_bool_t print_axis = ARRAY_N_1(LOGICAL_AXES, false);
@@ -52,22 +51,22 @@ void GcodeSuite::M122() {
 
   #if ENABLED(TMC_DEBUG)
     #if ENABLED(MONITOR_DRIVER_STATUS)
-      const bool sflag = parser.seen('S'), sval = sflag && parser.value_bool();
-      if (sflag && !sval) // "S0"
+      const bool sflag = parser.seen_test('S'), sval = sflag && parser.value_bool();
+      if (sflag && !sval)
         tmc_set_report_interval(0);
-      else if (parser.seenval('P')) // "P<ms>"
+      else if (parser.seenval('P'))
         tmc_set_report_interval(_MAX(uint16_t(250), parser.value_ushort()));
-      else if (sval) // "S" or "S1"
+      else if (sval)
         tmc_set_report_interval(MONITOR_DRIVER_STATUS_INTERVAL_MS);
     #endif
 
     if (parser.seen_test('V'))
-      tmc_get_registers(LOGICAL_AXIS_ELEM_LC(print_axis));
+      tmc_get_registers(LOGICAL_AXIS_ELEM(print_axis));
     else
-      tmc_report_all(LOGICAL_AXIS_ELEM_LC(print_axis));
+      tmc_report_all(LOGICAL_AXIS_ELEM(print_axis));
   #endif
 
-  test_tmc_connection(LOGICAL_AXIS_ELEM_LC(print_axis));
+  test_tmc_connection(LOGICAL_AXIS_ELEM(print_axis));
 }
 
 #endif // HAS_TRINAMIC_CONFIG

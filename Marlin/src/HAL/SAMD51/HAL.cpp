@@ -61,7 +61,8 @@
 #define GET_COOLER_ADC()            TERN(HAS_TEMP_ADC_COOLER,   PIN_TO_ADC(TEMP_COOLER_PIN),            -1)
 #define GET_BOARD_ADC()             TERN(HAS_TEMP_ADC_BOARD,    PIN_TO_ADC(TEMP_BOARD_PIN),             -1)
 #define GET_SOC_ADC()               TERN(HAS_TEMP_ADC_BOARD,    PIN_TO_ADC(TEMP_BOARD_PIN),             -1)
-#define GET_FILAMENT_WIDTH_ADC()    TERN(FILAMENT_WIDTH_SENSOR, PIN_TO_ADC(FILWIDTH_PIN),               -1)
+#define GET_FILAMENT_WIDTH_ADC()    TERN(FILAMENT_WIDTH_SENSOR, PIN_TO_ADC(FILWIDTH_PIN),
+#define GET_FEEDRATE_POT_ADC()    TERN(FEEDRATE_POT_SENSOR,     PIN_TO_ADC(FEEDPOT_PIN),               -1)
 #define GET_BUTTONS_ADC()           TERN(HAS_ADC_BUTTONS,       PIN_TO_ADC(ADC_KEYPAD_PIN),             -1)
 #define GET_JOY_ADC_X()             TERN(HAS_JOY_ADC_X,         PIN_TO_ADC(JOY_X_PIN),                  -1)
 #define GET_JOY_ADC_Y()             TERN(HAS_JOY_ADC_Y,         PIN_TO_ADC(JOY_Y_PIN),                  -1)
@@ -76,7 +77,7 @@
   || GET_CHAMBER_ADC() == n \
   || GET_PROBE_ADC() == n \
   || GET_COOLER_ADC() == n \
-  || GET_BOARD_ADC() == n || GET_SOC_ADC() == n \
+  || GET_BOARD_ADC() == n \
   || GET_FILAMENT_WIDTH_ADC() == n \
   || GET_BUTTONS_ADC() == n \
   || GET_JOY_ADC_X() == n || GET_JOY_ADC_Y() == n || GET_JOY_ADC_Z() == n \
@@ -140,9 +141,6 @@ enum ADCIndex {
   #if GET_BOARD_ADC() == 0
     TEMP_BOARD,
   #endif
-  #if GET_SOC_ADC() == 0
-    TEMP_SOC,
-  #endif
   #if GET_FILAMENT_WIDTH_ADC() == 0
     FILWIDTH,
   #endif
@@ -205,9 +203,6 @@ enum ADCIndex {
   #endif
   #if GET_BOARD_ADC() == 1
     TEMP_BOARD,
-  #endif
-  #if GET_SOC_ADC() == 1
-    TEMP_SOC,
   #endif
   #if GET_FILAMENT_WIDTH_ADC() == 1
     FILWIDTH,
@@ -328,11 +323,11 @@ enum ADCIndex {
     #if GET_BOARD_ADC() == 0
       TEMP_BOARD_PIN,
     #endif
-    #if GET_SOC_ADC() == 0
-      TEMP_SOC_PIN,
-    #endif
     #if GET_FILAMENT_WIDTH_ADC() == 0
       FILWIDTH_PIN,
+    #endif
+    #if GET_FEEDRATE_POT_ADC() == 0
+      FEEDPOT_PIN,
     #endif
     #if GET_BUTTONS_ADC() == 0
       ADC_KEYPAD_PIN,
@@ -394,11 +389,11 @@ enum ADCIndex {
     #if GET_BOARD_ADC() == 1
       TEMP_BOARD_PIN,
     #endif
-    #if GET_SOC_ADC() == 1
-      TEMP_SOC_PIN,
-    #endif
     #if GET_FILAMENT_WIDTH_ADC() == 1
       FILWIDTH_PIN,
+    #endif
+    #if GET_FEEDRATE_POT_ADC() == 1
+      FEEDPOT_PIN,
     #endif
     #if GET_BUTTONS_ADC() == 1
       ADC_KEYPAD_PIN,
@@ -465,11 +460,11 @@ enum ADCIndex {
       #if GET_BOARD_ADC() == 0
         { PIN_TO_INPUTCTRL(TEMP_BOARD_PIN) },
       #endif
-      #if GET_SOC_ADC() == 0
-        { PIN_TO_INPUTCTRL(TEMP_SOC_PIN) },
-      #endif
       #if GET_FILAMENT_WIDTH_ADC() == 0
         { PIN_TO_INPUTCTRL(FILWIDTH_PIN) },
+      #endif
+      #if GET_FEEDRATE_POT_ADC() == 0
+        { PIN_TO_INPUTCTRL(FEEDPOT_PIN) },
       #endif
       #if GET_BUTTONS_ADC() == 0
         { PIN_TO_INPUTCTRL(ADC_KEYPAD_PIN) },
@@ -537,11 +532,11 @@ enum ADCIndex {
       #if GET_BOARD_ADC() == 1
         { PIN_TO_INPUTCTRL(TEMP_BOARD_PIN) },
       #endif
-      #if GET_SOC_ADC() == 1
-        { PIN_TO_INPUTCTRL(TEMP_SOC_PIN) },
-      #endif
       #if GET_FILAMENT_WIDTH_ADC() == 1
         { PIN_TO_INPUTCTRL(FILWIDTH_PIN) },
+      #endif
+      #if GET_FEEDRATE_POT_ADC() == 1
+        { PIN_TO_INPUTCTRL(FEEDPOT_PIN) },
       #endif
       #if GET_BUTTONS_ADC() == 1
         { PIN_TO_INPUTCTRL(ADC_KEYPAD_PIN) },
@@ -669,7 +664,7 @@ void MarlinHAL::init() {
     #if HAS_SD_DETECT && SD_CONNECTION_IS(ONBOARD)
       SET_INPUT_PULLUP(SD_DETECT_PIN);
     #endif
-    OUT_WRITE(SD_SS_PIN, HIGH);  // Try to set SDSS inactive before any other SPI users start up
+    OUT_WRITE(SDSS, HIGH);  // Try to set SDSS inactive before any other SPI users start up
   #endif
 }
 

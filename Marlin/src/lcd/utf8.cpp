@@ -29,8 +29,6 @@
  * @copyright GPL/BSD
  */
 
-#include "../inc/MarlinConfigPre.h"
-
 #include "../inc/MarlinConfig.h"
 
 #if HAS_WIRED_LCD
