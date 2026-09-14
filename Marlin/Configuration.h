@@ -61,7 +61,7 @@
 // @section info
 
 // Author info of this build printed to the host during boot and M115
-#define STRING_CONFIG_H_AUTHOR "(CF, Programa listo, Debugging)" // Who made the changes.
+#define STRING_CONFIG_H_AUTHOR "(Zen XY Table, CF)" // Machine-specific firmware build.
 //#define CUSTOM_VERSION_FILE Version.h // Path from the root directory (no quotes)
 
 /**
@@ -75,14 +75,16 @@
  * respectfully request that you retain the unmodified Marlin boot screen.
  */
 
-// Show the Marlin bootscreen on startup. ** ENABLE FOR PRODUCTION **
-#define SHOW_BOOTSCREEN
+// Zen XY table: keep the startup screen minimal and machine-specific.
+//#define SHOW_BOOTSCREEN
 
 // Show the bitmap in Marlin/_Bootscreen.h on startup.
 //#define SHOW_CUSTOM_BOOTSCREEN
 
 // Show the bitmap in Marlin/_Statusscreen.h on the status screen.
 //#define CUSTOM_STATUS_SCREEN_IMAGE
+
+#define CUSTOM_MACHINE_NAME "Zen XY Table"
 
 // @section machine
 
@@ -2029,9 +2031,10 @@
 // When enabled Marlin will send a busy status message to the host
 // every couple of seconds when it can't accept commands.
 //
-#define HOST_KEEPALIVE_FEATURE        // Disable this if your host doesn't like keepalive messages
+// Zen XY table does not use a standard hotend-heating workflow.
+//#define HOST_KEEPALIVE_FEATURE
 #define DEFAULT_KEEPALIVE_INTERVAL 2  // Number of seconds between "busy" messages. Set with M113.
-#define BUSY_WHILE_HEATING            // Some hosts require "busy" messages even during heating
+//#define BUSY_WHILE_HEATING
 
 // @section units
 
@@ -2050,31 +2053,22 @@
 //
 // Preheat Constants - Up to 10 are supported without changes
 //
-#define PREHEAT_1_LABEL       "PLA"
-#define PREHEAT_1_TEMP_HOTEND 180
-#define PREHEAT_1_TEMP_BED     70
-#define PREHEAT_1_TEMP_CHAMBER 35
-#define PREHEAT_1_FAN_SPEED     0 // Value from 0 to 255
+// Zen table: keep the preheat menus but remove hotend/bed assumptions.
+#define PREHEAT_1_LABEL       "ZEN"
+#define PREHEAT_1_TEMP_HOTEND   0
+#define PREHEAT_1_TEMP_BED       0
+#define PREHEAT_1_TEMP_CHAMBER   0
+#define PREHEAT_1_FAN_SPEED      0
 
-#define PREHEAT_2_LABEL       "ABS"
-#define PREHEAT_2_TEMP_HOTEND 240
-#define PREHEAT_2_TEMP_BED    110
-#define PREHEAT_2_TEMP_CHAMBER 35
-#define PREHEAT_2_FAN_SPEED     0 // Value from 0 to 255
+#define PREHEAT_2_LABEL       "IDLE"
+#define PREHEAT_2_TEMP_HOTEND    0
+#define PREHEAT_2_TEMP_BED        0
+#define PREHEAT_2_TEMP_CHAMBER    0
+#define PREHEAT_2_FAN_SPEED       0
 
 // @section motion
 
-/**
- * Nozzle Park
- *
- * Park the nozzle at the given XYZ position on idle or G27.
- *
- * The "P" parameter controls the action applied to the Z axis:
- *
- *    P0  (Default) If Z is below park Z raise the nozzle.
- *    P1  Raise the nozzle always to Z-park height.
- *    P2  Raise the nozzle by Z-park amount, limited to Z_MAX_POS.
- */
+// Zen XY table: no nozzle parking / hotend handling is required.
 //#define NOZZLE_PARK_FEATURE
 
 #if ENABLED(NOZZLE_PARK_FEATURE)
