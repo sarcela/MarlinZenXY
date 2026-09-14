@@ -3552,17 +3552,20 @@
   //#define FILAMENT_LCD_DISPLAY
 #endif
 
+// Robot-specific analog input configuration for the Zen XY table.
+// Keep only the potentiometer-based motion controls that are actually used.
 #define FEEDRATE_POT_SENSOR
 
 #if ENABLED(FEEDRATE_POT_SENSOR)
   #define FEEDPOT_PIN 11
-  #define MAXFEEDRATE 55                   
+  #define MAXFEEDRATE 55
 #endif
 
 #define DWEL_POT_SENSOR
 #if ENABLED(DWEL_POT_SENSOR)
-  #define DWPOT_PIN 12                   
+  #define DWPOT_PIN 12
 #endif
+
 // @section power
 
 /**
