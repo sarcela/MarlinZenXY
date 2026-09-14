@@ -120,7 +120,7 @@ extern bool DWcont;
       SERIAL_ECHOLNPGM("Loading FD: ", autoname);
       queue.inject(autoname);
 
-      queue.inject(F("M23 AUTO0.G\nM24)"));
+      queue.inject(F("M23 AUTO0.G\nM24"));
 
       auto_g_state = 1;
       // fall through to case 1
@@ -139,59 +139,43 @@ extern bool DWcont;
             case 0:
               if (DWcont){
                 if (!card.isPrinting()) {
+                  if (max_autofile_index_ERRASER == 0) return false;
                   seed_16 = rand();
-                  //SERIAL_ECHOLNPGM("final seed_16: ", seed_16);
 
-                  int count =0;
+                  unsigned int attempts = 0;
                   do {
-                    randomNumber = (seed_16 % max_autofile_index_ERRASER)+RAND_MIN;
-                    //SERIAL_ECHOLNPGM("randomNumber: ", randomNumber);
-                    count++;
-                    if (count > 5) {
-                      randomNumber = (lastrandomNumber+1)%max_autofile_index_ERRASER;
-                      lastrandomNumber = 0;
-                    }
-                  } while (randomNumber==lastrandomNumber);
+                    randomNumber = (seed_16 % max_autofile_index_ERRASER) + RAND_MIN;
+                    seed_16 = (seed_16 * 1103515245u + 12345u) & 0xFFFF;
+                    attempts++;
+                  } while (randomNumber == lastrandomNumber && attempts < 10 && max_autofile_index_ERRASER > 1);
                   lastrandomNumber = randomNumber;
 
-                  //SERIAL_ECHOLNPGM("DWcont: ", DWcont);
-
-
                   sprintf_P(autoname, PSTR("M23 ERRASER%s.G\nM24"), i16tostr3left(randomNumber));
-                  //SERIAL_ECHOLNPGM("autoname: ", autoname);
                   queue.inject(autoname);
                   alternator = 1;
                   DWcont = false;
-                  //SERIAL_ECHOLNPGM("DWcont: ", DWcont);
                   break;
                 }
               }
           case 1:
-            //if (DWcont){
               if (!card.isPrinting()) {
+                  if (max_autofile_index == 0) return false;
                   seed_16 = rand();
-                  //SERIAL_ECHOLNPGM("final seed_16: ", seed_16);
 
-                  int count =0;
+                  unsigned int attempts = 0;
                   do {
-                    randomNumber = (seed_16 % max_autofile_index)+RAND_MIN;
-                    //SERIAL_ECHOLNPGM("randomNumber: ", randomNumber);
-                    count++;
-                    if (count > 5) {
-                      randomNumber = (lastrandomNumber+1)%max_autofile_index;
-                      lastrandomNumber = 0;
-                   }
-                  } while (randomNumber==lastrandomNumber);
+                    randomNumber = (seed_16 % max_autofile_index) + RAND_MIN;
+                    seed_16 = (seed_16 * 1103515245u + 12345u) & 0xFFFF;
+                    attempts++;
+                  } while (randomNumber == lastrandomNumber && attempts < 10 && max_autofile_index > 1);
                   lastrandomNumber = randomNumber;
 
                   sprintf_P(autoname, PSTR("M23 PATTERN%s.G\nM24"), i16tostr3left(randomNumber));
-                  //SERIAL_ECHOLNPGM("autoname: ", autoname);
                   queue.inject(autoname);
                   alternator = 0;
                   break;
                 }
-            //}
-          }          
+          }
           
 
         break;
@@ -206,20 +190,22 @@ uint8_t get_max_autofile() {
     card.mount();
   else if (ENABLED(SDCARD_EEPROM_EMULATION))
     settings.first_load();
-  uint8_t counter = 1;
-  
+
+  uint8_t max_count = 0;
+
   // Don't run auto#.g when a PLR file exists
   if (card.isMounted() && TERN1(POWER_LOSS_RECOVERY, !recovery.valid())) {
     char autoname[15];
-    do {
+    for (uint8_t counter = 1; ; counter++) {
       sprintf_P(autoname, PSTR("PATTERN%s.g"), i16tostr3left(counter));
-       //SERIAL_ECHOLNPGM("file name: ", autoname, "  exits: ", card.fileExists(autoname));
-      counter++;
-    } while(card.fileExists(autoname));
-    
+      if (!card.fileExists(autoname)) {
+        max_count = counter - 1;
+        break;
+      }
+    }
   }
 
-  return (counter - 2);
+  return max_count;
 }
 
 uint8_t get_max_ERRASER() {
@@ -228,19 +214,21 @@ uint8_t get_max_ERRASER() {
     card.mount();
   else if (ENABLED(SDCARD_EEPROM_EMULATION))
     settings.first_load();
-  uint8_t counterERRASER = 1;
+
+  uint8_t max_count = 0;
 
   // Don't run auto#.g when a PLR file exists
   if (card.isMounted() && TERN1(POWER_LOSS_RECOVERY, !recovery.valid())) {
     char autoname[15];
-    do {
+    for (uint8_t counterERRASER = 1; ; counterERRASER++) {
       sprintf_P(autoname, PSTR("ERRASER%s.g"), i16tostr3left(counterERRASER));
-       //SERIAL_ECHOLNPGM("file name: ", autoname, "  exits: ", card.fileExists(autoname));
-      counterERRASER++;
-    } while(card.fileExists(autoname));
-
+      if (!card.fileExists(autoname)) {
+        max_count = counterERRASER - 1;
+        break;
+      }
+    }
   }
 
-  return (counterERRASER - 2);
+  return max_count;
 }
 #endif
